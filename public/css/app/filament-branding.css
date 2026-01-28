@@ -1,0 +1,61 @@
+/* Personalización de logos para tema claro y oscuro */
+
+/* Ocultar el texto "Laravel" y reemplazarlo con el logo */
+.fi-topbar-brand,
+.fi-sidebar-brand {
+    font-size: 0 !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    min-height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Logo en barra superior - tema claro */
+.fi-topbar-brand {
+    background-image: url('/imagenes/sm_hor_negro.png') !important;
+    width: 200px !important;
+}
+
+/* Logo en barra lateral - tema claro */
+.fi-sidebar-brand {
+    background-image: url('/imagenes/sm_hor_negro.png') !important;
+    width: 100% !important;
+}
+
+/* Tema oscuro - barra superior */
+.dark .fi-topbar-brand,
+@media (prefers-color-scheme: dark) {
+    .fi-topbar-brand {
+        background-image: url('/imagenes/sm_hor_blanco.png') !important;
+    }
+}
+
+/* Tema oscuro - barra lateral */
+.dark .fi-sidebar-brand,
+@media (prefers-color-scheme: dark) {
+    .fi-sidebar-brand {
+        background-image: url('/imagenes/sm_hor_blanco.png') !important;
+    }
+}
+
+/* Ocultar todo texto dentro de brand */
+.fi-topbar-brand *,
+.fi-sidebar-brand * {
+    display: none !important;
+}
+
+/* Para asegurar que el logo se vea en login */
+.fi-simple-page .fi-topbar-brand {
+    background-image: url('/imagenes/sm_hor_negro.png') !important;
+    min-height: 100px !important;
+}
+
+.dark .fi-simple-page .fi-topbar-brand,
+@media (prefers-color-scheme: dark) {
+    .fi-simple-page .fi-topbar-brand {
+        background-image: url('/imagenes/sm_hor_blanco.png') !important;
+    }
+}

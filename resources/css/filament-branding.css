@@ -1,0 +1,12 @@
+/*
+ * Branding CSS para Filament
+ * El logo se inyecta mediante JavaScript en resources/js/filament-logo.js
+ * Este archivo solo contiene estilos de apoyo si son necesarios
+ */
+
+/* Asegurar que las imágenes del logo se vean bien */
+img[alt="Logo"] {
+    max-height: 50px;
+    width: auto;
+    object-fit: contain;
+}
