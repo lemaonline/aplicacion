@@ -13,10 +13,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class PresupuestoResource extends Resource
 {
     protected static ?string $model = Presupuesto::class;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Proyectos';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-currency-dollar';
 

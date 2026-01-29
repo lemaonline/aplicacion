@@ -16,10 +16,13 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ConstanteResource extends Resource
 {
     protected static ?string $model = Constante::class;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Proyectos';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 

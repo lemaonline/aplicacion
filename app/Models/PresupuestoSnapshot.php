@@ -41,8 +41,8 @@ class PresupuestoSnapshot extends Model
         return $this->hasMany(ZonaSnapshot::class);
     }
 
-    public function montaje(): HasMany
+    public function montaje(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasMany(MontajeSnapshot::class);
+        return $this->hasOne(MontajeSnapshot::class);
     }
 }

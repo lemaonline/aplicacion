@@ -12,6 +12,9 @@ class RecetaItem extends Model
         'pieza_id',
         'cantidad_base',
         'referencia',
+        'formula',
+        'condicion_cerradura',
+        'condicion_bisagra',
     ];
 
     protected $casts = [

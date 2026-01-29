@@ -193,6 +193,17 @@ class PresupuestoForm
                                     $transportes = (int) ($get('montaje.numero_transportes') ?: 0);
                                     $precioTrans = (float) ($get('montaje.importe_unidad_transporte') ?: 0);
                                     $costeMontajeBase += ($transportes * $precioTrans);
+
+                                    if ($get('montaje.dietas')) {
+                                        $precioDieta = \App\Models\Constante::where('nombre', 'dieta_trabajador_dia')->value('valor') ?? 0;
+                                        $costeMontajeBase += ($dias * $trabajadores * $precioDieta);
+                                    }
+
+                                    if ($get('montaje.hospedaje') && $dias > 0) {
+                                        $precioHospedaje = \App\Models\Constante::where('nombre', 'hospedaje_trabajador_dia')->value('valor') ?? 0;
+                                        $diasHospedaje = max(0, $dias - 1);
+                                        $costeMontajeBase += ($diasHospedaje * $trabajadores * $precioHospedaje);
+                                    }
                                 }
 
                                 // 3. Márgenes
@@ -227,17 +238,24 @@ class PresupuestoForm
                     ->addActionLabel('Añadir zona')
                     ->itemLabel(fn(array $state): ?string => $state['nombre'] ?? null)
                     ->schema([
-                        // NOMBRE DE ZONA
+                        // PRIMERA LÍNEA: Nombre, Altura, Puerta, Trasteros, Cerradura, Bisagra, M2
                         TextInput::make('nombre')
                             ->label('Nombre Zona')
                             ->required()
-                            ->columnSpan(3),
+                            ->columnSpan(2),
 
-                        // PRIMERA LÍNEA: Altura, Cerradura, Bisagra, M2, Trasteros
                         TextInput::make('altura_sistema')
-                            ->label('Altura (mm)')
+                            ->label('Alt. Sist.(mm)')
                             ->numeric()
                             ->required()
+                            ->step(0.01)
+                            ->columnSpan(2),
+
+                        TextInput::make('altura_puerta')
+                            ->label('Alt. Puerta (mm)')
+                            ->numeric()
+                            ->required()
+                            ->default(2100)
                             ->step(0.01)
                             ->columnSpan(2),
 
@@ -261,18 +279,19 @@ class PresupuestoForm
                             ->required()
                             ->columnSpan(2),
 
-                        TextInput::make('m2')
-                            ->label('M2')
-                            ->numeric()
-                            ->step(0.01)
-                            ->columnSpan(2),
-
                         TextInput::make('num_trasteros')
                             ->label('Trasteros')
                             ->numeric()
                             ->columnSpan(1),
 
-                        // SEGUNDA LÍNEA: Componentes principales
+                        TextInput::make('m2')
+                            ->label('M2')
+                            ->numeric()
+                            ->step(0.01)
+                            ->columnSpan(1),
+
+                        // SEGUNDA LÍNEA: WP, Galva, Puertas (Normales, Twin, Roller)
+
                         TextInput::make('wp_500')
                             ->label('WP 500')
                             ->numeric()
@@ -321,42 +340,57 @@ class PresupuestoForm
                             ->numeric()
                             ->columnSpan(1),
 
+                        TextInput::make('roller_750')
+                            ->label('Roller 750')
+                            ->numeric()
+                            ->columnSpan(1),
+
+                        TextInput::make('roller_1000')
+                            ->label('Roller 1000')
+                            ->numeric()
+                            ->columnSpan(1),
+
+                        TextInput::make('roller_1500')
+                            ->label('Roller 1500')
+                            ->numeric()
+                            ->columnSpan(1),
+
+                        // TERCERA LÍNEA: Malla, Tablero, Esquinas, Extras
                         TextInput::make('malla_techo')
                             ->label('Malla')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(1),
+                            ->columnSpan(2),
 
                         TextInput::make('tablero')
                             ->label('Tablero')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(1),
+                            ->columnSpan(2),
 
                         TextInput::make('esquinas')
                             ->label('Esquinas')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(1),
+                            ->columnSpan(2),
 
-                        // TERCERA LÍNEA: Extras
                         TextInput::make('extra_galva')
                             ->label('Extra Galva')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(4),
+                            ->columnSpan(2),
 
                         TextInput::make('extra_wp')
                             ->label('Extra WP')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(4),
+                            ->columnSpan(2),
 
                         TextInput::make('extra_damero')
                             ->label('Extra Damero')
                             ->numeric()
                             ->step(0.01)
-                            ->columnSpan(4),
+                            ->columnSpan(2),
 
                         Repeater::make('pasillos')
                             ->label('Pasillos')

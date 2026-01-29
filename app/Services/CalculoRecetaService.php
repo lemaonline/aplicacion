@@ -29,6 +29,9 @@ class CalculoRecetaService
                 'puerta_2000',
                 'twin_750',
                 'twin_1000',
+                'roller_750',
+                'roller_1000',
+                'roller_1500',
                 'malla_techo',
                 'tablero',
                 'esquinas',
@@ -133,20 +136,49 @@ class CalculoRecetaService
             return;
 
         foreach ($receta->items as $item) {
-            $cantidadBase = (float) $item->cantidad_base;
-            $cantidadPiezas = $valor * $cantidadBase;
-            $formula = "{$valor} (en {$campo}) × {$cantidadBase}";
-
-            $escala = 1.0;
-            if ($item->referencia === 'altura' || $item->referencia === 'altura_sistema') {
-                $escala = ($zona->altura_sistema ?: 0) / 1000;
-                $formula .= " × {$escala}m (escala altura)";
-            } elseif ($item->referencia === 'ancho_pasillo') {
-                $escala = $anchoPasilloFactor;
-                $formula .= " × {$escala}m (escala pasillo)";
+            // FILTRO DE CONDICIONES (Cerradura y Bisagra)
+            if ($item->condicion_cerradura && $item->condicion_cerradura !== $zona->cerradura) {
+                continue;
+            }
+            if ($item->condicion_bisagra && $item->condicion_bisagra !== $zona->bisagra) {
+                continue;
             }
 
-            $this->agregarResultado($item, $cantidadPiezas, $escala, $formula, $resultados);
+            $cantidadBase = (float) $item->cantidad_base;
+            $cantidadPiezas = $valor * $cantidadBase;
+            $formulaDesc = "{$valor} (en {$campo}) × {$cantidadBase}";
+
+            $escala = 1.0;
+
+            // SI HAY FÓRMULA, TIENE PRECEDENCIA
+            if (!empty($item->formula)) {
+                $valores = [
+                    'VAL' => $valor,
+                    'HS' => $zona->altura_sistema ?: 0,
+                    'HP' => $zona->altura_puerta ?: 0,
+                    'M2' => $zona->m2 ?: 0,
+                    'TR' => $zona->num_trasteros ?: 0,
+                    'AP' => $anchoPasilloFactor ?: 0,
+                ];
+                $cantidadPiezas = $this->resolverFormula($item->formula, $valores);
+                $formulaDesc = "Fórmula: {$item->formula} [con VAL={$valor}, HS=" . ($valores['HS']) . ", HP=" . ($valores['HP']) . "]";
+                $escala = 1.0; // En fórmulas la escala va implícita
+            } else {
+                // LÓGICA ANTIGUA DE ESCALA (FALLBACK)
+                if ($item->referencia === 'altura' || $item->referencia === 'altura_sistema') {
+                    $escala = ($zona->altura_sistema ?: 0) / 1000;
+                    $formulaDesc .= " × {$escala}m (escala sistema)";
+                } elseif ($item->referencia === 'altura_puerta') {
+                    $escala = ($zona->altura_puerta ?: 0) / 1000;
+                    $formulaDesc .= " × {$escala}m (escala puerta)";
+                } elseif ($item->referencia === 'ancho_pasillo') {
+                    $escala = $anchoPasilloFactor;
+                    $formulaDesc .= " × {$escala}m (escala pasillo)";
+                }
+                $cantidadPiezas = $valor * $cantidadBase * $escala;
+            }
+
+            $this->agregarResultado($item, $cantidadPiezas, $escala, $formulaDesc, $resultados);
         }
     }
 
@@ -166,18 +198,37 @@ class CalculoRecetaService
             foreach ($receta->items as $item) {
                 $cantidadBase = (float) $item->cantidad_base;
                 $cantidadPiezas = $longitud * $cantidadBase;
-                $formula = "{$longitud} (long. pasillo #" . ($index + 1) . ") × {$cantidadBase}";
+                $formulaDesc = "{$longitud} (long. pasillo #" . ($index + 1) . ") × {$cantidadBase}";
 
                 $escala = 1.0;
-                if ($item->referencia === 'altura' || $item->referencia === 'altura_sistema') {
-                    $escala = ($zona->altura_sistema ?: 0) / 1000;
-                    $formula .= " × {$escala}m (escala altura)";
-                } elseif ($item->referencia === 'ancho_pasillo') {
-                    $escala = $ancho;
-                    $formula .= " × {$escala}m (ancho propio)";
+
+                if (!empty($item->formula)) {
+                    $valores = [
+                        'VAL' => $longitud,
+                        'HS' => $zona->altura_sistema ?: 0,
+                        'HP' => $zona->altura_puerta ?: 0,
+                        'M2' => $zona->m2 ?: 0,
+                        'TR' => $zona->num_trasteros ?: 0,
+                        'AP' => $ancho ?: 0,
+                    ];
+                    $cantidadPiezas = $this->resolverFormula($item->formula, $valores);
+                    $formulaDesc = "Fórmula Complex: {$item->formula} [VAL={$longitud}, HS={$valores['HS']}, HP={$valores['HP']}, AP={$ancho}]";
+                    $escala = 1.0;
+                } else {
+                    if ($item->referencia === 'altura' || $item->referencia === 'altura_sistema') {
+                        $escala = ($zona->altura_sistema ?: 0) / 1000;
+                        $formulaDesc .= " × {$escala}m (escala sistema)";
+                    } elseif ($item->referencia === 'altura_puerta') {
+                        $escala = ($zona->altura_puerta ?: 0) / 1000;
+                        $formulaDesc .= " × {$escala}m (escala puerta)";
+                    } elseif ($item->referencia === 'ancho_pasillo') {
+                        $escala = $ancho;
+                        $formulaDesc .= " × {$escala}m (ancho propio)";
+                    }
+                    $cantidadPiezas = $longitud * $cantidadBase * $escala;
                 }
 
-                $this->agregarResultado($item, $cantidadPiezas, $escala, $formula, $resultados);
+                $this->agregarResultado($item, $cantidadPiezas, $escala, $formulaDesc, $resultados);
             }
         }
     }
@@ -206,5 +257,27 @@ class CalculoRecetaService
 
         $resultados[$piezaId]['cantidad_piezas'] += $cantidadPiezas;
         $resultados[$piezaId]['desglose'][] = $formula;
+    }
+
+    protected function resolverFormula($formula, $valores)
+    {
+        // 1. Reemplazar placeholders
+        foreach ($valores as $key => $val) {
+            $formula = str_replace("{{$key}}", (float) $val, $formula);
+        }
+
+        // 2. Limpieza estricta de seguridad
+        $sanitized = preg_replace('/[^0-9\.\+\-\*\/\(\)\ ]/', '', $formula);
+
+        if (empty($sanitized))
+            return 0;
+
+        try {
+            // 3. Evaluar expresión matemática
+            $resultado = eval ("return ($sanitized);");
+            return is_numeric($resultado) ? (float) $resultado : 0;
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 }

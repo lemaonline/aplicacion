@@ -7,6 +7,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
+use App\Models\Presupuesto;
+use Filament\Actions\Action;
 use Filament\Tables\Table;
 
 class PresupuestosTable
@@ -68,6 +70,11 @@ class PresupuestosTable
                 //
             ])
             ->recordActions([
+                Action::make('dashboard')
+                    ->label('Análisis')
+                    ->icon('heroicon-o-presentation-chart-bar')
+                    ->color('info')
+                    ->url(fn(Presupuesto $record): string => \App\Filament\Pages\DashboardPresupuestos::getUrl(['presupuesto_id' => $record->id])),
                 EditAction::make(),
             ])
             ->bulkActions([

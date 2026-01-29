@@ -22,6 +22,7 @@ class Zona extends Model
         'receta_id',
         'nombre',
         'altura_sistema',
+        'altura_puerta',
         'cerradura',
         'bisagra',
         'm2',
@@ -35,6 +36,9 @@ class Zona extends Model
         'puerta_2000',
         'twin_750',
         'twin_1000',
+        'roller_750',
+        'roller_1000',
+        'roller_1500',
         'pasillos',
         'malla_techo',
         'tablero',
@@ -46,6 +50,11 @@ class Zona extends Model
 
     protected $casts = [
         'pasillos' => 'array',
+        'altura_sistema' => 'float',
+        'altura_puerta' => 'float',
+        'roller_750' => 'float',
+        'roller_1000' => 'float',
+        'roller_1500' => 'float',
     ];
 
     public function presupuesto()

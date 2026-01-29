@@ -10,6 +10,17 @@ class Montaje extends Model
 {
     protected $table = 'montajes';
 
+    protected static function booted()
+    {
+        static::saved(function ($montaje) {
+            if ($montaje->presupuesto) {
+                app(\App\Services\CalculoRecetaService::class)->actualizarTotalPresupuesto($montaje->presupuesto);
+                // El método anterior dispara el update() del presupuesto, 
+                // lo cual a su vez dispara el snapshot en el modelo Presupuesto.
+            }
+        });
+    }
+
     protected $fillable = [
         'presupuesto_id',
         'numero_trasteros',
