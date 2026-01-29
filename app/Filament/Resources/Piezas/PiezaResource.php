@@ -22,6 +22,8 @@ class PiezaResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCube;
 
+    protected static ?int $navigationSort = 5;
+
     protected static ?string $recordTitleAttribute = 'nombre';
 
     protected static ?string $navigationLabel = 'Piezas';

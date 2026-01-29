@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Labors\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -16,8 +17,17 @@ class LaborForm
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('precio_hora')
-                    ->label('Precio por Hora')
+                Select::make('unidad_medida')
+                    ->label('Unidad de Medida')
+                    ->options([
+                        'hora' => 'Hora',
+                        'minuto' => 'Minuto',
+                    ])
+                    ->default('hora')
+                    ->required(),
+
+                TextInput::make('precio')
+                    ->label('Precio')
                     ->numeric()
                     ->required(),
             ]);

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Piezas\Schemas;
 
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -39,6 +40,11 @@ class PiezaForm
                         'tornilleria' => 'Tornilleria',
                     ])
                     ->required(),
+
+                Placeholder::make('info_materiales')
+                    ->label('')
+                    ->content('💡 Después de crear la pieza, podrás añadir materiales y mano de obra en las pestañas correspondientes.')
+                    ->hiddenOn('edit'),
             ]);
     }
 }

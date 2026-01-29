@@ -9,11 +9,12 @@ class Labor extends Model
 {
     protected $fillable = [
         'nombre',
-        'precio_hora',
+        'unidad_medida',
+        'precio',
     ];
 
     protected $casts = [
-        'precio_hora' => 'decimal:2',
+        'precio' => 'decimal:2',
     ];
 
     public function piezas(): BelongsToMany

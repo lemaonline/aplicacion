@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Zonas\Schemas;
 
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -19,7 +20,7 @@ class ZonaForm
                     ->numeric()
                     ->required()
                     ->step(0.01)
-                    ->columnSpan(2),
+                    ->columnSpan(4),
 
                 Select::make('cerradura')
                     ->label('Cerradura')
@@ -156,6 +157,39 @@ class ZonaForm
                     ->numeric()
                     ->step(0.01)
                     ->columnSpan(1),
+
+                \Filament\Forms\Components\Section::make('Desglose de Componentes Calculados')
+                    ->description('Materiales y mano de obra calculados automáticamente según la receta seleccionada.')
+                    ->schema([
+                        Repeater::make('calculos')
+                            ->relationship()
+                            ->schema([
+                                Select::make('pieza_id')
+                                    ->label('Pieza')
+                                    ->relationship('pieza', 'nombre')
+                                    ->disabled()
+                                    ->columnSpan(2),
+                                TextInput::make('cantidad_total')
+                                    ->label('Cantidad')
+                                    ->disabled()
+                                    ->columnSpan(1),
+                                TextInput::make('coste_total')
+                                    ->label('Coste Est.')
+                                    ->disabled()
+                                    ->columnSpan(1),
+                                \Filament\Forms\Components\Textarea::make('desglose_calculo')
+                                    ->label('Fórmulas Aplicadas')
+                                    ->disabled()
+                                    ->rows(2)
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(6)
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                    ])
+                    ->collapsible()
+                    ->columnSpan(6),
             ]);
     }
 }

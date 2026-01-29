@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Material;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class MaterialSeeder extends Seeder
 {
@@ -12,22 +13,26 @@ class MaterialSeeder extends Seeder
      */
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Material::truncate();
+        Schema::enableForeignKeyConstraints();
+
         Material::create([
             'nombre' => 'CHAPA DE PUERTAS',
             'descripcion' => null,
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
-            'nombre' => 'CHAPA PERFILERILA',
+            'nombre' => 'CHAPA PERFILERIA',
             'descripcion' => null,
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -36,7 +41,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -45,7 +50,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -54,7 +59,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -63,7 +68,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'kg',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -72,7 +77,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'm2',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -81,7 +86,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'm2',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -90,7 +95,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -99,7 +104,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -108,7 +113,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -117,7 +122,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -126,7 +131,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -135,7 +140,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -144,7 +149,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -153,7 +158,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -162,7 +167,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -171,7 +176,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -180,7 +185,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
 
         Material::create([
@@ -189,7 +194,7 @@ class MaterialSeeder extends Seeder
             'unidad_medida' => 'ud',
             'stock_actual' => 0,
             'stock_minimo' => 0,
-            'precio' => 0,
+            'precio' => mt_rand(5, 100) / 10,
         ]);
     }
 }

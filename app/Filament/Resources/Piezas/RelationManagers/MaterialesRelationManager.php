@@ -10,6 +10,7 @@ use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -27,11 +28,16 @@ class MaterialesRelationManager extends RelationManager
                 TextInput::make('nombre')
                     ->label('Material')
                     ->disabled(),
-                TextInput::make('pivot.cantidad')
+                TextInput::make('cantidad')
                     ->label('Cantidad')
                     ->numeric()
                     ->step('0.01')
-                    ->required(),
+                    ->required()
+                    ->helperText('Cantidad por metro de pieza'),
+                Toggle::make('es_proporcional')
+                    ->label('Es proporcional')
+                    ->helperText('Si está activado, la cantidad se multiplicará por la medida de la zona (m, m2, etc.)')
+                    ->default(true),
             ]);
     }
 
@@ -43,9 +49,14 @@ class MaterialesRelationManager extends RelationManager
                 TextColumn::make('nombre')
                     ->label('Material')
                     ->searchable(),
-                TextColumn::make('pivot.cantidad')
+                TextColumn::make('cantidad')
                     ->label('Cantidad')
                     ->sortable(),
+                TextColumn::make('es_proporcional')
+                    ->label('Prop.')
+                    ->badge()
+                    ->color(fn($state) => $state ? 'success' : 'warning')
+                    ->formatStateUsing(fn($state) => $state ? 'Sí' : 'No'),
             ])
             ->filters([
                 //
@@ -54,18 +65,26 @@ class MaterialesRelationManager extends RelationManager
                 AttachAction::make()
                     ->label('Añadir material')
                     ->preloadRecordSelect()
-                    ->form(fn (AttachAction $action) => [
+                    ->form(fn(AttachAction $action) => [
                         $action->getRecordSelect(),
                         TextInput::make('cantidad')
                             ->label('Cantidad')
                             ->numeric()
                             ->step('0.01')
-                            ->required(),
+                            ->required()
+                            ->helperText('Cantidad por metro de pieza'),
+                        Toggle::make('es_proporcional')
+                            ->label('Es proporcional')
+                            ->helperText('Si está activado, la cantidad se multiplicará por la medida de la zona')
+                            ->default(true),
                     ])
                     ->using(function (RelationManager $livewire, $record, array $data): void {
                         $livewire->getOwnerRecord()->materiales()->attach(
                             $record,
-                            ['cantidad' => $data['cantidad']]
+                            [
+                                'cantidad' => $data['cantidad'],
+                                'es_proporcional' => $data['es_proporcional'] ?? true,
+                            ]
                         );
                     }),
             ])
@@ -74,7 +93,10 @@ class MaterialesRelationManager extends RelationManager
                     ->using(function (RelationManager $livewire, Model $record, array $data): void {
                         $livewire->getOwnerRecord()->materiales()->updateExistingPivot(
                             $record,
-                            ['cantidad' => $data['pivot']['cantidad'] ?? $data['cantidad'] ?? 0]
+                            [
+                                'cantidad' => $data['cantidad'] ?? 0,
+                                'es_proporcional' => $data['es_proporcional'] ?? true,
+                            ]
                         );
                     }),
                 DetachAction::make()

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Presupuestos\Schemas;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -137,6 +138,87 @@ class PresupuestoForm
                     ])
                     ->columns(12)
                     ->collapsible()
+                    ->columnSpan(12),
+
+                Section::make('Resumen de Costes (Automático)')
+                    ->description('Cálculo consolidado basado en las recetas de todas las zonas.')
+                    ->schema([
+                        \Filament\Forms\Components\Placeholder::make('total_coste_base')
+                            ->label('Total Coste Base')
+                            ->content(function ($record) {
+                                if (!$record)
+                                    return '€0,00';
+
+                                // Suma de todos los costes de piezas (Material + Labor)
+                                $costePiezas = $record->zonas()->get()->flatMap->calculos->sum('coste_total') ?? 0;
+
+                                // Coste de montaje base
+                                $costeMontaje = $record->montaje ? $record->montaje->calcularCoste() : 0;
+
+                                $total = $costePiezas + $costeMontaje;
+                                return '€' . number_format($total, 2, ',', '.');
+                            })
+                            ->columnSpan(4),
+
+                        \Filament\Forms\Components\Placeholder::make('precio_venta_estimado')
+                            ->label('Precio Venta Sugerido (Precios Actuales)')
+                            ->content(function ($record, $get) {
+                                // 1. Costes Base de piezas (usando lo que hay en BD para estabilidad)
+                                $totalMaterial = 0;
+                                $totalLabor = 0;
+
+                                if ($record) {
+                                    $calculos = $record->zonas()->get()->flatMap->calculos;
+                                    $totalMaterial = $calculos->sum('coste_material') ?? 0;
+                                    $totalLabor = $calculos->sum('coste_labor') ?? 0;
+                                }
+
+                                // 2. Coste de montaje (calculado con datos actuales del formulario)
+                                $costeMontajeBase = 0;
+                                $metodo = $get('montaje.metodo_calculo');
+
+                                if ($metodo === 'autonomos') {
+                                    $precioPorTrastero = \App\Models\Constante::where('nombre', 'precio_por_trastero')->value('valor') ?? 0;
+                                    $trasteros = (int) ($get('montaje.numero_trasteros') ?: 0);
+                                    $transportes = (int) ($get('montaje.numero_transportes') ?: 0);
+                                    $precioTrans = (float) ($get('montaje.importe_unidad_transporte') ?: 0);
+                                    $costeMontajeBase = ($trasteros * $precioPorTrastero) + ($transportes * $precioTrans);
+                                } elseif ($metodo === 'trabajadores_propios' || !$metodo) {
+                                    $precioHora = \App\Models\Labor::where('nombre', 'Mano de obra de montaje')->value('precio') ?? 0;
+                                    $trabajadores = (int) ($get('montaje.numero_trabajadores') ?: 0);
+                                    $dias = (int) ($get('montaje.dias_previstos_montaje') ?: 0);
+                                    $costeMontajeBase = $trabajadores * $dias * 8 * $precioHora;
+
+                                    // Sumar otros costes si existen
+                                    $transportes = (int) ($get('montaje.numero_transportes') ?: 0);
+                                    $precioTrans = (float) ($get('montaje.importe_unidad_transporte') ?: 0);
+                                    $costeMontajeBase += ($transportes * $precioTrans);
+                                }
+
+                                // 3. Márgenes
+                                $margenMat = (float) ($get('margen_materiales') ?? ($record->margen_materiales ?: 0));
+                                $margenLab = (float) ($get('margen_mano_obra') ?? ($record->margen_mano_obra ?: 0));
+                                $margenMon = (float) ($get('margen_montaje') ?? ($record->margen_montaje ?: 0));
+                                $comision = (float) ($get('comision') ?? ($record->comision ?: 0));
+
+                                // 4. Totales
+                                $ventaMaterial = $totalMaterial * (1 + ($margenMat / 100));
+                                $ventaLabor = $totalLabor * (1 + ($margenLab / 100));
+                                $ventaMontaje = $costeMontajeBase * (1 + ($margenMon / 100));
+
+                                $totalSugerido = $ventaMaterial + $ventaLabor + $ventaMontaje + $comision;
+
+                                return '€' . number_format($totalSugerido, 2, ',', '.');
+                            })
+                            ->helperText('Calculado con precios actuales de materiales y mano de obra')
+                            ->columnSpan(4),
+
+                        \Filament\Forms\Components\Placeholder::make('info_calculo')
+                            ->label('Info')
+                            ->content('Los costes se recalculan automáticamente al guardar cada zona.')
+                            ->columnSpan(4),
+                    ])
+                    ->columns(12)
                     ->columnSpan(12),
 
                 Repeater::make('zonas')
@@ -313,13 +395,15 @@ class PresupuestoForm
                             }),
                     ])
                     ->schema([
+                        // === DATOS GENERALES ===
                         TextInput::make('numero_trasteros')
                             ->label('Número de Trasteros')
                             ->numeric()
                             ->minValue(0)
                             ->readOnly()
                             ->dehydrated(true)
-                            ->columnSpan(2),
+                            ->live()
+                            ->columnSpan(3),
 
                         TextInput::make('superficie_m2')
                             ->label('Superficie (m²)')
@@ -328,40 +412,131 @@ class PresupuestoForm
                             ->step('0.01')
                             ->readOnly()
                             ->dehydrated(true)
-                            ->columnSpan(2),
+                            ->columnSpan(3),
 
                         TextInput::make('numero_transportes')
                             ->label('Número de Transportes')
                             ->numeric()
                             ->minValue(0)
-                            ->columnSpan(2),
+                            ->live()
+                            ->columnSpan(3),
 
                         TextInput::make('importe_unidad_transporte')
                             ->label('Importe/Transporte (€)')
                             ->numeric()
                             ->minValue(0)
                             ->step('0.01')
-                            ->columnSpan(2),
+                            ->live()
+                            ->columnSpan(3),
 
+                        // Campos para trabajadores propios
                         TextInput::make('numero_trabajadores')
                             ->label('Número de Trabajadores')
                             ->numeric()
                             ->minValue(0)
-                            ->columnSpan(2),
+                            ->live()
+                            ->columnSpan(3),
 
                         TextInput::make('dias_previstos_montaje')
-                            ->label('Días Previstos de Montaje')
+                            ->label('Días Previstos')
                             ->numeric()
                             ->minValue(0)
-                            ->columnSpan(2),
+                            ->live()
+                            ->columnSpan(3),
 
                         Checkbox::make('dietas')
-                            ->label('Dietas')
-                            ->columnSpan(1),
+                            ->label('Incluir Dietas')
+                            ->live()
+                            ->columnSpan(3),
 
                         Checkbox::make('hospedaje')
-                            ->label('Hospedaje')
-                            ->columnSpan(1),
+                            ->label('Incluir Hospedaje')
+                            ->live()
+                            ->columnSpan(3),
+
+                        // === SELECTOR DE MÉTODO ===
+                        \Filament\Forms\Components\ToggleButtons::make('metodo_calculo')
+                            ->label('⚙️ Método de Cálculo a Aplicar al Presupuesto')
+                            ->options([
+                                'autonomos' => 'Autónomos',
+                                'trabajadores_propios' => 'Trabajadores Propios',
+                            ])
+                            ->default('trabajadores_propios')
+                            ->inline()
+                            ->required()
+                            ->columnSpan(12),
+
+                        // === RESÚMENES DE COSTE ===
+                        \Filament\Forms\Components\Placeholder::make('coste_autonomos_preview')
+                            ->label('💼 Coste Montaje Autónomos')
+                            ->content(function ($get) {
+                                $numeroTrasteros = (int) ($get('numero_trasteros') ?: 0);
+                                $numeroTransportes = (int) ($get('numero_transportes') ?: 0);
+                                $importeTransporte = (float) ($get('importe_unidad_transporte') ?: 0);
+
+                                $precioPorTrastero = \App\Models\Constante::where('nombre', 'precio_por_trastero')->value('valor') ?? 0;
+                                $costeTransporte = $numeroTransportes * $importeTransporte;
+                                $costeTrasteros = $numeroTrasteros * $precioPorTrastero;
+
+                                $total = $costeTrasteros + $costeTransporte;
+                                return '€' . number_format($total, 2, ',', '.') . ' (Trasteros: ' . $numeroTrasteros . ' × ' . number_format($precioPorTrastero, 2, ',', '.') . '€ + Transporte)';
+                            })
+                            ->columnSpan(6),
+
+
+                        \Filament\Forms\Components\Placeholder::make('coste_trabajadores_preview')
+                            ->label('👷 Coste Montaje Trabajadores Propios')
+                            ->content(function ($get) {
+                                $numeroTransportes = (int) ($get('numero_transportes') ?: 0);
+                                $importeTransporte = (float) ($get('importe_unidad_transporte') ?: 0);
+                                $dias = (int) ($get('dias_previstos_montaje') ?: 0);
+                                $trabajadores = (int) ($get('numero_trabajadores') ?: 0);
+                                $dietas = (bool) ($get('dietas') ?: false);
+                                $hospedaje = (bool) ($get('hospedaje') ?: false);
+                                $horasPorDia = 8;
+
+                                // Coste de mano de obra: trabajadores × días × 8 horas × precio_hora
+                                // Obtener precio desde el modelo Labor (Mano de obra de montaje)
+                                $precioHoraInstalacion = \App\Models\Labor::where('nombre', 'Mano de obra de montaje')->value('precio') ?? 0;
+                                $costeManoObra = $trabajadores * $dias * $horasPorDia * $precioHoraInstalacion;
+
+                                $costeTransporte = $numeroTransportes * $importeTransporte;
+                                $costeDietas = 0;
+                                $costeHospedaje = 0;
+
+                                if ($dietas) {
+                                    $precioDieta = \App\Models\Constante::where('nombre', 'dieta_trabajador_dia')->value('valor') ?? 0;
+                                    $costeDietas = $dias * $trabajadores * $precioDieta;
+                                }
+
+                                if ($hospedaje && $dias > 0) {
+                                    $precioHospedaje = \App\Models\Constante::where('nombre', 'hospedaje_trabajador_dia')->value('valor') ?? 0;
+                                    // Hospedaje es (días - 1) porque si trabajas 4 días, solo necesitas 3 noches
+                                    $diasHospedaje = max(0, $dias - 1);
+                                    $costeHospedaje = $diasHospedaje * $trabajadores * $precioHospedaje;
+                                }
+
+                                $total = $costeManoObra + $costeTransporte + $costeDietas + $costeHospedaje;
+
+                                $detalles = [];
+                                if ($costeManoObra > 0) {
+                                    $detalles[] = 'M.Obra: ' . number_format($costeManoObra, 2, ',', '.') . '€';
+                                }
+                                if ($costeTransporte > 0) {
+                                    $detalles[] = 'Transporte: ' . number_format($costeTransporte, 2, ',', '.') . '€';
+                                }
+                                if ($costeDietas > 0) {
+                                    $detalles[] = 'Dietas: ' . number_format($costeDietas, 2, ',', '.') . '€';
+                                }
+                                if ($costeHospedaje > 0) {
+                                    $detalles[] = 'Hospedaje: ' . number_format($costeHospedaje, 2, ',', '.') . '€';
+                                }
+
+                                $detalleTexto = !empty($detalles) ? ' (' . implode(' + ', $detalles) . ')' : '';
+
+                                return '€' . number_format($total, 2, ',', '.') . $detalleTexto;
+                            })
+                            ->columnSpan(6),
                     ])
                     ->columns(12)
                     ->collapsible()

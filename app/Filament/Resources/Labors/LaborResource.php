@@ -20,6 +20,8 @@ class LaborResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
+    protected static ?int $navigationSort = 3;
+
     protected static ?string $navigationLabel = 'Mano de Obra';
 
     protected static ?string $modelLabel = 'mano de obra';

@@ -14,12 +14,14 @@ class LaborSeeder extends Seeder
     {
         Labor::create([
             'nombre' => 'Mano de obra de fabricación',
-            'precio_hora' => 20,
+            'unidad_medida' => 'minuto',
+            'precio' => 20, // 20€/minuto (según ejemplo del usuario de 2€/min) o valor deseado
         ]);
 
         Labor::create([
             'nombre' => 'Mano de obra de montaje',
-            'precio_hora' => 25,
+            'unidad_medida' => 'hora',
+            'precio' => 25,
         ]);
     }
 }

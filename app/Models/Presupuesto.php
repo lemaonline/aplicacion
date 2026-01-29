@@ -38,6 +38,23 @@ class Presupuesto extends Model
             if (empty($model->estado)) {
                 $model->estado = 'activo';
             }
+
+            // Si cambian márgenes o comisión, forzamos recálculo si ya tiene zonas
+            // Nota: El total se recalcula sumando los costes de las piezas + márgenes + comisión
+            if ($model->isDirty(['margen_materiales', 'margen_mano_obra', 'margen_montaje', 'comision'])) {
+                // No llamamos a calcular() de zona porque eso borra y recrea piezas
+                // Solo llamamos a actualizarTotalPresupuesto para reaplicar márgenes sobre lo ya calculado
+                // Pasamos false para que no haga un update() interno y evitemos bucles
+                app(\App\Services\CalculoRecetaService::class)->actualizarTotalPresupuesto($model, false);
+            }
+        });
+
+        // Generar snapshot después de guardar (cuando ya existen zonas y montaje)
+        static::saved(function ($model) {
+            // Solo generar snapshot si tiene zonas (presupuesto completo)
+            if ($model->zonas()->exists()) {
+                app(\App\Services\PresupuestoSnapshotService::class)->crear($model);
+            }
         });
     }
 
@@ -49,6 +66,11 @@ class Presupuesto extends Model
     public function montaje(): HasOne
     {
         return $this->hasOne(Montaje::class);
+    }
+
+    public function snapshots(): HasMany
+    {
+        return $this->hasMany(PresupuestoSnapshot::class);
     }
 
     public function getTotalTrasteros(): int

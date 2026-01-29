@@ -130,7 +130,10 @@ class EditPresupuesto extends EditRecord
     {
         // Forzamos el guardado de los datos de montaje si existen en el form
         if (!empty($this->data['montaje'])) {
-            $this->record->montaje()->updateOrCreate([], $this->data['montaje']);
+            \App\Models\Montaje::updateOrCreate(
+                ['presupuesto_id' => $this->record->id],
+                $this->data['montaje']
+            );
         }
     }
 

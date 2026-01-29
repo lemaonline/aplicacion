@@ -17,7 +17,7 @@ class Pieza extends Model
     public function materiales(): BelongsToMany
     {
         return $this->belongsToMany(Material::class, 'pieza_material')
-            ->withPivot('cantidad')
+            ->withPivot('cantidad', 'es_proporcional')
             ->withTimestamps();
     }
 
@@ -28,30 +28,46 @@ class Pieza extends Model
             ->withTimestamps();
     }
 
-    public function calcularCosteMateriales(): float
+    public function calcularCosteMaterialesProporcionales(): float
     {
         return $this->materiales()
+            ->wherePivot('es_proporcional', true)
             ->get()
             ->reduce(function ($total, $material) {
-                $cantidad = $material->pivot->cantidad;
-                $precio = $material->precio;
-                return $total + ($cantidad * $precio);
+                return $total + ($material->pivot->cantidad * $material->precio);
             }, 0);
+    }
+
+    public function calcularCosteMaterialesFijos(): float
+    {
+        return $this->materiales()
+            ->wherePivot('es_proporcional', false)
+            ->get()
+            ->reduce(function ($total, $material) {
+                return $total + ($material->pivot->cantidad * $material->precio);
+            }, 0);
+    }
+
+    public function calcularCosteMateriales(): float
+    {
+        return $this->calcularCosteMaterialesProporcionales() + $this->calcularCosteMaterialesFijos();
     }
 
     public function calcularCosteLabor(): float
     {
+        // El usuario indica que la mano de obra SIEMPRE es constante (fija)
         return $this->labores()
             ->get()
             ->reduce(function ($total, $labor) {
-                $horas = $labor->pivot->cantidad;
-                $precio_hora = $labor->precio_hora;
-                return $total + ($horas * $precio_hora);
+                return $total + ($labor->pivot->cantidad * $labor->precio);
             }, 0);
     }
 
-    public function calcularCosteTotal(): float
+    public function calcularCosteTotal(float $medidaZona = 1): float
     {
-        return $this->calcularCosteMateriales() + $this->calcularCosteLabor();
+        $materiales = ($this->calcularCosteMaterialesProporcionales() * $medidaZona) + $this->calcularCosteMaterialesFijos();
+        $labor = $this->calcularCosteLabor(); // Fijo independientemente de la medida
+
+        return $materiales + $labor;
     }
 }

@@ -51,14 +51,17 @@ class PresupuestosTable
                     ->money('eur')
                     ->sortable(),
 
-                SelectColumn::make('estado')
+                TextColumn::make('estado')
                     ->label('Estado')
-                    ->options([
-                        'activo' => 'Activo',
-                        'inactivo' => 'Inactivo',
-                        'contratado' => 'Contratado',
-                        'instalado' => 'Instalado',
-                    ])
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => ucfirst($state))
+                    ->color(fn(string $state): string => match ($state) {
+                        'activo' => 'success',
+                        'inactivo' => 'gray',
+                        'contratado' => 'info',
+                        'instalado' => 'primary',
+                        default => 'gray',
+                    })
                     ->sortable(),
             ])
             ->filters([
@@ -68,8 +71,8 @@ class PresupuestosTable
                 EditAction::make(),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                \Filament\Actions\BulkActionGroup::make([
+                    \Filament\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

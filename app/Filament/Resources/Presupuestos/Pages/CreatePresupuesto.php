@@ -53,9 +53,11 @@ class CreatePresupuesto extends CreateRecord
 
     protected function afterCreate(): void
     {
-        // Aseguramos que se cree el registro de montaje vinculado al nuevo presupuesto
-        $montajeData = $this->data['montaje'] ?? [];
-
-        $this->record->montaje()->create($montajeData);
+        if (!empty($this->data['montaje'])) {
+            \App\Models\Montaje::updateOrCreate(
+                ['presupuesto_id' => $this->record->id],
+                $this->data['montaje']
+            );
+        }
     }
 }

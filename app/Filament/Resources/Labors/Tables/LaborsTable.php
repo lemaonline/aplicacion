@@ -19,8 +19,12 @@ class LaborsTable
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('precio_hora')
-                    ->label('Precio por Hora')
+                TextColumn::make('unidad_medida')
+                    ->label('Unidad de Medida')
+                    ->badge(),
+
+                TextColumn::make('precio')
+                    ->label('Precio')
                     ->money('EUR')
                     ->sortable(),
             ])

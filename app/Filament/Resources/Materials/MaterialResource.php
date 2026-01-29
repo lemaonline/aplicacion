@@ -20,6 +20,8 @@ class MaterialResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
+    protected static ?int $navigationSort = 4;
+
     protected static ?string $navigationLabel = 'Materiales';
 
     protected static ?string $modelLabel = 'material';

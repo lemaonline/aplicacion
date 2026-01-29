@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\GastoGenerales;
+namespace App\Filament\Resources\Constantes;
 
-use App\Filament\Resources\GastoGenerales\Pages\ManageGastoGenerales;
-use App\Models\GastoGeneral;
+use App\Filament\Resources\Constantes\Pages\ManageConstantes;
+use App\Models\Constante;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -17,46 +17,39 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class GastoGeneralResource extends Resource
+class ConstanteResource extends Resource
 {
-    protected static ?string $model = GastoGeneral::class;
+    protected static ?string $model = Constante::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
-
-    protected static ?int $navigationSort = 1;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
     protected static ?string $recordTitleAttribute = 'nombre';
 
-    protected static ?string $modelLabel = 'Gasto General';
+    protected static ?string $modelLabel = 'Constante';
 
-    protected static ?string $pluralModelLabel = 'Gastos Generales';
+    protected static ?string $pluralModelLabel = 'Constantes';
 
-    protected static ?string $navigationLabel = 'Gastos Generales';
+    protected static ?string $navigationLabel = 'Constantes';
 
-    protected static ?string $slug = 'gastos-generales';
+    protected static ?string $slug = 'constantes';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->components([
                 TextInput::make('nombre')
-                    ->label('Nombre/Concepto')
+                    ->label('Nombre')
                     ->required()
-                    ->maxLength(255),
-                \Filament\Forms\Components\Select::make('periodicidad')
-                    ->options([
-                        'mensual' => 'Mensual',
-                        'trimestral' => 'Trimestral',
-                        'semestral' => 'Semestral',
-                        'anual' => 'Anual',
-                    ])
-                    ->required()
-                    ->default('mensual'),
-                TextInput::make('importe')
-                    ->label('Importe (€)')
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
+                TextInput::make('valor')
+                    ->label('Valor (€)')
                     ->required()
                     ->numeric()
-                    ->prefix('€'),
+                    ->prefix('€')
+                    ->step(0.01),
                 Textarea::make('descripcion')
                     ->label('Descripción')
                     ->rows(2)
@@ -71,17 +64,12 @@ class GastoGeneralResource extends Resource
             ->recordTitleAttribute('nombre')
             ->columns([
                 TextColumn::make('nombre')
-                    ->label('Concepto')
+                    ->label('Nombre')
                     ->searchable()
                     ->sortable()
-                    ->description(fn(GastoGeneral $record): ?string => $record->descripcion),
-                TextColumn::make('periodicidad')
-                    ->label('Periodicidad')
-                    ->badge()
-                    ->color('info')
-                    ->formatStateUsing(fn(string $state): string => ucfirst($state)),
-                TextColumn::make('importe')
-                    ->label('Importe')
+                    ->description(fn(Constante $record): ?string => $record->descripcion),
+                TextColumn::make('valor')
+                    ->label('Valor')
                     ->money('eur')
                     ->sortable(),
                 TextColumn::make('created_at')
@@ -107,7 +95,7 @@ class GastoGeneralResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ManageGastoGenerales::route('/'),
+            'index' => ManageConstantes::route('/'),
         ];
     }
 }
