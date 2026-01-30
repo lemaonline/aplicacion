@@ -43,7 +43,7 @@ class DashboardPresupuestos extends Page implements HasForms
             ->schema([
                 Select::make('presupuesto_id')
                     ->label('Seleccionar Presupuesto')
-                    ->options(Presupuesto::query()->pluck('nombre_cliente', 'id'))
+                    ->options(Presupuesto::query()->pluck('referencia', 'id'))
                     ->required()
                     ->searchable()
                     ->live()

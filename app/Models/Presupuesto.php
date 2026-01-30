@@ -10,6 +10,7 @@ class Presupuesto extends Model
 {
     protected $fillable = [
         'nombre_cliente',
+        'referencia',
         'comentarios',
         'fecha_presupuesto',
         'version',
@@ -38,6 +39,9 @@ class Presupuesto extends Model
             if (empty($model->estado)) {
                 $model->estado = 'activo';
             }
+
+            // Calcular referencia combinando nombre y versión
+            $model->referencia = $model->nombre_cliente . ' - ' . ($model->version ?? 'v1');
 
             // Si cambian márgenes o comisión, forzamos recálculo si ya tiene zonas
             // Nota: El total se recalcula sumando los costes de las piezas + márgenes + comisión

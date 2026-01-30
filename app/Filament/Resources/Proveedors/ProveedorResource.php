@@ -26,7 +26,7 @@ class ProveedorResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'CRM';
+        return 'Administración';
     }
 
     public static function form(Schema $schema): Schema

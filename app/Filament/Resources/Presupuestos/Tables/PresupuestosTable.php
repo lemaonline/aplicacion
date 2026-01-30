@@ -17,10 +17,21 @@ class PresupuestosTable
     {
         return $table
             ->columns([
+                TextColumn::make('referencia')
+                    ->label('Referencia')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('nombre_cliente')
                     ->label('Cliente')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('version')
+                    ->label('Versión')
+                    ->badge()
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('fecha_presupuesto')
                     ->label('Fecha')
